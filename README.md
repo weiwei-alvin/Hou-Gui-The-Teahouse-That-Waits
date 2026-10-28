@@ -8,7 +8,7 @@ Built for the DEV Hacktoberfest Open-Source AI Challenge, Week 4: *Ghost in the 
 
 ## The story, without spoilers
 
-Your great-aunt left you a key and a letter you could not finish reading. The town on the map has been empty for decades. Someone behind the teahouse counter is still waiting, and not for you.
+You go back to the village for your great-aunt's funeral, and find an envelope with your name on it: an old key, and a letter the rain has half washed away. The town on the map has been empty for decades. Someone behind the teahouse counter is still waiting, and not for you.
 
 Whether the keeper can let go is decided by the game's rules, from what you actually did. What the keeper does once free is left to the model: it may stay, or it may move on. Endings can differ between runs for that reason, and the model-layer test records how often each happens instead of promising one outcome.
 
@@ -67,7 +67,7 @@ python tools/keeper_model_test.py --model gemma4:e4b --runs 3
 - `src/keeper.js`: prompt building, request binding, timeout and stale policy, reply validation, Ollama and scripted transports.
 - `src/keeper_prompt.json`: the prompt, attitudes and actions. Shared by the game and the model-layer test.
 - `src/main.js`, `src/style.css`, `index.html`: the page and the scene.
-- `docs/design-v0.3.zh-TW.md`: the design document (Traditional Chinese).
+- `docs/design-v0.4.zh-TW.md`: the design document (Traditional Chinese). Contains spoilers.
 
 ## Model and license
 

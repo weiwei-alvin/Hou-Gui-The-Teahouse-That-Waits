@@ -25,7 +25,7 @@ let world;
 let keeper;
 let lastPlayerText = null;
 const STAGE_TEXT = { wary: "wary", cooperative: "willing to work with you", lets_guests_in: "letting guests in", let_go: "no longer waiting" };
-const TRIGGERS = new Set(["repair_completed", "guest_arrived", "teahouse_restored", "life_resumed", "guest_still_waiting", "knot_untied"]);
+const TRIGGERS = new Set(["repair_completed", "guest_arrived", "teahouse_restored", "guest_still_waiting", "lantern_noticed", "her_cup_served", "knot_untied"]);
 
 const ACTION_TEXT = {
   none: "does nothing",
@@ -105,11 +105,17 @@ function caption(text) { $("caption").textContent = text; }
 function afterEvents(events) {
   const reasons = events.filter((e) => TRIGGERS.has(e.kind)).map((e) => e.kind);
   if (reasons.length) keeper.request({ reasons });
-  if (events.some((e) => e.kind === "teahouse_restored")) {
-    caption("Everything is mended. Perhaps step outside for a while.");
+  if (events.some((e) => e.kind === "teahouse_restored") && world.cup !== "served") {
+    caption("Everything is mended. The crane cup is still in your hands.");
   }
-  if (events.some((e) => ["life_resumed", "guest_left", "guest_still_waiting", "knot_untied"].includes(e.kind))) showSummary();
+  if (events.some((e) => ["guest_left", "guest_departed_quietly", "guest_still_waiting", "knot_untied"].includes(e.kind))) showSummary();
   render();
+}
+
+function act(fn, text) {
+  const r = fn(world);
+  caption(r.ok ? text : r.reason);
+  if (r.ok) afterEvents(r.events);
 }
 
 function step(item, stepId, text, opts) {
@@ -132,7 +138,7 @@ const HOT = {
     else caption("Scrap wood. It could brace something, if that something were standing.");
   },
   debris() {
-    if (world.progress.seating === 0) step("seating", "clear", "You drag the broken crates away. There is room by the window, and by the brazier.");
+    if (world.progress.seating === 0) step("seating", "clear", "You drag the broken crates away. Underneath lies an old celadon cup with a crane on it. You keep it.");
   },
   "spot-window"() { step("seating", "place", "You set a table and chairs by the window.", { spot: "window" }); },
   "spot-brazier"() { step("seating", "place", "You set a table and chairs by the cold brazier.", { spot: "brazier" }); },
@@ -144,7 +150,20 @@ const HOT = {
     if (p === 0) caption("A cracked clay stove. Its cups lie scattered across the floor.");
     else if (p === 1) step("tea", "fix_stove", "You pack the crack with clay. The stove holds.");
     else if (p === 2) step("tea", "set_and_fire", "You set out the cups and light the stove. The flame burns blue.");
+    else if (world.cup === "empty") act(R.pourHerCup, "You pour tea into the crane cup. It is warm, but not too hot to hold.");
     else caption("The kettle mutters to itself.");
+  },
+  guest() {
+    const g = world.guest;
+    if (world.cup === "filled" && g.at === "seats") {
+      act(R.serveHerCup, "You set the crane cup before her. Her hands close around it.");
+    } else if (!g.lanternNoticed) {
+      act(R.inspectGuest, "You look closer. She carries a small lantern, the same as the one by the door.");
+    } else if (world.cup === "filled") {
+      caption("She would need a seat inside before you could set a cup before her.");
+    } else {
+      caption("A quiet guest with a small lantern. She does not look at the keeper, and he does not look at her.");
+    }
   },
   bench() {
     caption("A plain stone bench outside. Anyone may wait here; it is not part of the teahouse.");
@@ -175,7 +194,7 @@ function render() {
   const tea = world.progress.tea;
   const seat = world.progress.seating;
   const spot = world.seatingSpot;
-  const life = world.events.some((e) => e.kind === "life_resumed");
+  const life = world.ending === "stayed";
 
   show("lamp-fallen", lamp === 0);
   show("lamp-up", lamp >= 1);
@@ -211,13 +230,20 @@ function render() {
   show("tea-cup-window", g.served && g.at === "seats" && spot === "window");
   show("tea-cup-brazier", g.served && g.at === "seats" && spot === "brazier");
 
+  if (g.present) {
+    const [gx, gy] = GUEST_AT[g.at === "seats" ? spot : g.at];
+    $("hot-guest").setAttribute("x", gx - 28); $("hot-guest").setAttribute("y", gy - 88);
+  }
+  show("crane-window", world.cup === "served" && spot === "window");
+  show("crane-brazier", world.cup === "served" && spot === "brazier");
   const vis = {
     lamp: true, wood: lamp < 2, debris: seat === 0, "spot-window": seat === 1, "spot-brazier": seat === 1,
-    teaware: tea === 0, stove: true, bench: true,
+    teaware: tea === 0, stove: true, bench: true, guest: g.present && !world.ending,
   };
   const can = {
     lamp: lamp === 0 || lamp === 2, wood: lamp === 1, debris: seat === 0, "spot-window": seat === 1,
-    "spot-brazier": seat === 1, teaware: tea === 0, stove: tea === 1 || tea === 2, bench: false,
+    "spot-brazier": seat === 1, teaware: tea === 0, stove: tea === 1 || tea === 2 || (tea === 3 && world.cup === "empty"),
+    bench: false, guest: world.cup === "filled" && g.at === "seats",
   };
   for (const el of document.querySelectorAll(".hot")) {
     el.toggleAttribute("hidden", world.away || !vis[el.dataset.hot]);
@@ -232,7 +258,9 @@ function render() {
   const over = !!world.ending;
   $("talk").disabled = world.away || over;
   for (const b of document.querySelectorAll("#quick button, #talk-form button")) b.disabled = world.away || over;
-  $("leave").classList.toggle("nudge", R.isRestored(world) && !world.revisited);
+  const carry = { empty: "You carry: the crane cup (empty)", filled: "You carry: the crane cup, full of warm tea" }[world.cup];
+  $("carry").hidden = !carry;
+  $("carry").textContent = carry || "";
   $("leave").disabled = over;
 }
 
@@ -310,10 +338,11 @@ function logRow(r) {
 
 const OUTCOME = {
   unresolved: ["The guest gave up and left. The teahouse is mended, but the keeper is still waiting at the door.", ""],
+  unresolved_quiet: ["The guest finished an ordinary cup of tea and slipped away. The keeper never looked up. He is still waiting at the door.", ""],
   waiting: ["The guest is still waiting on the bench outside. It is not too late to receive them.", ""],
-  let_go: ["The keeper has stopped waiting at the door. What comes next is the keeper's own choice.", "warm"],
+  let_go: ["The keeper saw the crane cup, and then he saw her. He has stopped waiting at the door. What comes next is his own choice.", "warm"],
   stayed: ["The keeper chose to stay. The teahouse is open again: still haunted, but warm.", "warm"],
-  moved_on: ["The keeper chose to move on. The lamp is still lit, and a cup is still warm on the counter.", "warm"],
+  moved_on: ["The keeper chose to move on, and she went with him. The lamp is still lit, and the crane cup is still warm.", "warm"],
 };
 
 function outcomeKey() {
@@ -354,7 +383,7 @@ function showSummary(lastReply) {
   body.append(ul);
   body.append(el("h3", null, "What happened to the guest"));
   const gl = el("ul");
-  for (const e of ev.filter((x) => ["guest_arrived", "guest_served", "life_resumed", "guest_still_waiting", "guest_left"].includes(x.kind) ||
+  for (const e of ev.filter((x) => ["guest_arrived", "lantern_noticed", "guest_served", "her_cup_served", "guest_still_waiting", "guest_left", "guest_departed_quietly"].includes(x.kind) ||
     (x.kind === "keeper_action" && ["greet_at_door", "ask_guest_to_wait", "invite_to_sit"].includes(x.data.action)))) {
     gl.append(el("li", null, R.describeEvent(e)));
   }
@@ -463,8 +492,8 @@ $("export").addEventListener("click", () => {
 
 // ---------- prologue ----------
 const PROLOGUE = [
-  ["art/intro-1.png", "My great-aunt left me one thing: a key, and a letter I couldn't finish reading."],
-  ["art/intro-2.png", "“…someone has to go back, and put the teahouse in order.”"],
+  ["art/intro-1.png", "I went back to the village for my great-aunt's funeral. Among her things was an envelope with my name on it."],
+  ["art/intro-2.png", "Inside: an old key, and a letter the rain had half washed away. “…someone has to go back, and put the teahouse in order… my crane cup… he will know it…”"],
   ["art/intro-3.png", "The town on the map had been empty for decades. The sign was still there. 候歸: awaiting return."],
   ["art/intro-4.png", "The door was already open. Someone behind the counter was waiting. Not for me."],
 ];

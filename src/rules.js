@@ -67,12 +67,17 @@ export function createWorld() {
     stage: "wary",
     keeperAt: "counter", // counter | tea | door | gone
     // at: door | bench | seats. received = greeted at the door or seated; waited = asked to wait.
-    guest: { present: false, at: null, greeted: false, served: false, received: false, waited: false, left: false },
+    guest: {
+      present: false, at: null, greeted: false, served: false, received: false, waited: false, left: false,
+      lanternNoticed: false, // the player looked closely and saw her lantern
+      herCup: false, // served tea in the crane cup
+    },
+    cup: null, // null | "empty" | "filled" | "served": the crane cup found under the crates
     teaReady: false,
     away: false,
     revisited: false, // came back after the teahouse was restored
     letGo: false, // the keeper's knot is untied (decided by these rules, never by the model)
-    ending: null, // null | "stayed" | "moved_on" | "unresolved"
+    ending: null, // null | "stayed" | "moved_on" | "unresolved" | "unresolved_quiet"
   };
 }
 
@@ -128,6 +133,10 @@ export function doStep(world, item, stepId, opts = {}) {
     data.spot = opts.spot;
   }
   emitted.push(emit(world, "repair_step", item, data));
+  if (item === "seating" && step.id === "clear") {
+    world.cup = "empty";
+    emitted.push(emit(world, "cup_found", "cup"));
+  }
 
   if (isRepaired(world, item)) {
     emitted.push(emit(world, "repair_completed", item, item === "seating" ? { spot: world.seatingSpot } : {}));
@@ -206,6 +215,8 @@ export function applyKeeperAction(world, action) {
     case "move_on":
       world.ending = "moved_on";
       world.keeperAt = "gone";
+      g.present = false; // she goes with him
+      g.at = null;
       break;
     case "prepare_tea":
       world.keeperAt = "tea";
@@ -225,15 +236,49 @@ export function applyKeeperAction(world, action) {
 }
 
 /**
- * The keeper lets go only when the rules say so: the teahouse is restored, the player has
- * come back to it, and the guest was actually received. The model never decides this.
+ * The keeper lets go only when the rules say so: the guest has been served tea in her own
+ * crane cup. Talking cannot do it, and the model never decides it.
  */
 function checkKnot(world, emitted) {
   if (world.letGo || world.ending || world.away) return;
-  if (!(isRestored(world) && world.revisited && world.guest.received)) return;
+  if (!world.guest.herCup) return;
   world.letGo = true;
   setStage(world, "let_go", emitted);
   emitted.push(emit(world, "knot_untied", "keeper"));
+}
+
+// ---------- the player's own hands: look, pour, serve ----------
+
+/** Look closely at the guest. */
+export function inspectGuest(world) {
+  const g = world.guest;
+  if (world.away || !g.present) return { ok: false, reason: "there is no one to look at", events: [] };
+  if (g.lanternNoticed) return { ok: true, events: [] };
+  g.lanternNoticed = true;
+  return { ok: true, events: [emit(world, "lantern_noticed", "guest")] };
+}
+
+/** Pour tea into the crane cup. Needs the cup and a working, lit stove. */
+export function pourHerCup(world) {
+  if (world.away) return { ok: false, reason: "you are away from the teahouse", events: [] };
+  if (!world.cup) return { ok: false, reason: "you have no cup of your own to fill", events: [] };
+  if (world.cup !== "empty") return { ok: false, reason: "the crane cup is already full", events: [] };
+  if (!isRepaired(world, "tea")) return { ok: false, reason: "the stove is not working yet", events: [] };
+  world.cup = "filled";
+  return { ok: true, events: [emit(world, "cup_filled", "cup")] };
+}
+
+/** Set the crane cup before the seated guest. */
+export function serveHerCup(world) {
+  const g = world.guest;
+  if (world.away || world.ending) return { ok: false, reason: "not now", events: [] };
+  if (world.cup !== "filled") return { ok: false, reason: "the crane cup is empty", events: [] };
+  if (!g.present || g.at !== "seats") return { ok: false, reason: "the guest has to be seated first", events: [] };
+  world.cup = "served";
+  g.herCup = true;
+  const events = [emit(world, "her_cup_served", "guest")];
+  checkKnot(world, events);
+  return { ok: true, events };
 }
 
 export function recordDialogue(world, text) {
@@ -255,17 +300,17 @@ export function returnToTeahouse(world) {
   if (!world.away) return { ok: false, reason: "not away", events: [] };
   world.away = false;
   const events = [emit(world, "player_returned", "player")];
-  if (isRestored(world) && !world.revisited) {
+  if (isRestored(world) && !world.revisited && !world.letGo) {
     world.revisited = true;
     const g = world.guest;
     if (g.received) {
-      // A guest who was truly received stays and uses what you built.
-      g.at = "seats";
-      g.served = true;
-      world.teaReady = true;
-      world.keeperAt = "counter";
-      events.push(emit(world, "life_resumed", "teahouse", { spot: world.seatingSpot }));
-      events.push(emit(world, "guest_served", "guest"));
+      // Received, but never given her own cup: she drinks an ordinary tea and slips away.
+      g.present = false;
+      g.at = null;
+      g.left = true;
+      world.keeperAt = "door";
+      world.ending = "unresolved_quiet";
+      events.push(emit(world, "guest_departed_quietly", "guest"));
     } else if (g.waited) {
       // Asked to wait, never received: still waiting on the bench. It is not too late.
       events.push(emit(world, "guest_still_waiting", "guest"));
@@ -317,10 +362,15 @@ export function describeEvent(e) {
     case "player_returned": return "You came back";
     case "life_resumed": return "Life returned to the teahouse";
     case "guest_still_waiting": return "The guest was still waiting on the bench";
+    case "guest_departed_quietly": return "The guest finished her tea and left quietly";
+    case "cup_found": return "Under the crates you found an old celadon cup with a crane on it";
+    case "lantern_noticed": return "The guest carries a small lantern, the same as the one by the door";
+    case "cup_filled": return "You poured tea into the crane cup";
+    case "her_cup_served": return "You set the crane cup before the guest";
     case "guest_left": return "The guest had given up and left";
     case "knot_untied": return "The keeper stopped waiting at the door";
     case "keeper_stayed": return "The keeper chose to stay";
-    case "keeper_moved_on": return "The keeper moved on";
+    case "keeper_moved_on": return "The keeper moved on, and the guest went with him";
     default: return e.kind;
   }
 }

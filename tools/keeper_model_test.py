@@ -67,6 +67,8 @@ def build_world(items, player):
                 add("repair_step", item, step=step, spot=spot)
             else:
                 add("repair_step", item, step=step)
+            if item == "seating" and step == "clear":
+                add("cup_found", "cup")
         add("repair_completed", item, **({"spot": spot} if item == "seating" else {}))
         done.append(item)
         if len(done) == 1:

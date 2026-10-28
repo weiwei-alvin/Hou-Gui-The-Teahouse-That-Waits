@@ -222,7 +222,17 @@
             <path d="M-13 -66 Q0 -96 13 -66 Q0 -58 -13 -66Z" fill="#8d7c9a" opacity=".8"/>
           </g>
           <circle cx="-4" cy="-66" r="1.8" fill="#e9f2f4"/><circle cx="4" cy="-66" r="1.8" fill="#e9f2f4"/>
+          <!-- she carries a small lantern, the same as the one by the door -->
+          <g id="guest-lantern">
+            <path d="M14 -44 L20 -30" stroke="#3a2c24" stroke-width="1.5"/>
+            <path d="M14 -30 L26 -30 L24 -28 L16 -28Z" fill="#141c22"/>
+            <rect x="15" y="-28" width="10" height="12" fill="#22282b" stroke="#3a2c24" stroke-width="1"/>
+            <rect x="17" y="-26" width="6" height="8" fill="#c9fff3" opacity=".75"/>
+          </g>
         </g>
+        <!-- her crane cup, once you set it before her -->
+        <g id="crane-window" hidden><rect x="556" y="373" width="12" height="9" rx="3" fill="#9cc7b5"/><path d="M559 376 l3 2 l3 -2" stroke="#e9f2f4" stroke-width="1" fill="none"/></g>
+        <g id="crane-brazier" hidden><rect x="701" y="447" width="12" height="9" rx="3" fill="#9cc7b5"/><path d="M704 450 l3 2 l3 -2" stroke="#e9f2f4" stroke-width="1" fill="none"/></g>
 
         <!-- ===== Warm light: only once the keeper has let go ===== -->
         <g id="warm" opacity="0" pointer-events="none">
@@ -245,6 +255,7 @@
           <rect class="hot" data-hot="spot-brazier" x="632" y="440" width="116" height="44" tabindex="0" role="button" aria-label="Place furniture by the brazier"/>
           <rect class="hot" data-hot="stove" x="840" y="320" width="104" height="66" tabindex="0" role="button" aria-label="Tea station and stove"/>
           <rect class="hot" data-hot="teaware" x="690" y="482" width="150" height="50" tabindex="0" role="button" aria-label="Scattered teaware"/>
+          <rect class="hot" data-hot="guest" id="hot-guest" x="0" y="0" width="56" height="92" tabindex="0" role="button" aria-label="The guest"/>
           <rect class="hot" data-hot="bench" x="56" y="424" width="148" height="46" tabindex="0" role="button" aria-label="Stone bench"/>
         </g>
 
@@ -260,6 +271,7 @@
       <button id="leave">Step outside for a while</button>
       <button id="return" hidden>Return to the teahouse</button>
       <span class="progress" id="progress"></span>
+      <span class="carry" id="carry" hidden></span>
     </div>
   </section>
 

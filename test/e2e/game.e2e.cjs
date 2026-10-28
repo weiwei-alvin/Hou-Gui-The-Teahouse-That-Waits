@@ -50,13 +50,15 @@ async function repair(page, item, spot) {
     }
     let s = await w(page);
     const done = s.progress.lamp === 3 && s.progress.tea === 3 && s.progress.seating === 2;
-    await page.click("#leave");
-    await page.click("#return");
+    check(`  restored and received is not enough to let go`, !s.letGo);
+    await page.fill("#talk", "Please sit inside now."); await page.click("#talk-form button"); await idle(page);
+    await hot(page, "stove"); // pour her cup
+    await hot(page, "guest"); // set it before her
     await idle(page);
     s = await w(page);
     const summary = await page.textContent("#summary");
-    check(`order ${order.join(" → ")} (${spot}) completes in the UI`, done && s.guest.at === "seats" && s.guest.served, JSON.stringify(s.progress));
-    check(`  received guest → keeper lets go, then makes the ending choice`, s.letGo && s.ending === "stayed", `${s.letGo} ${s.ending}`);
+    check(`order ${order.join(" → ")} (${spot}) completes in the UI`, done && s.guest.at === "seats" && s.cup === "served", JSON.stringify(s.progress) + s.cup);
+    check(`  her crane cup → keeper lets go, then makes the ending choice`, s.letGo && s.ending === "stayed", `${s.letGo} ${s.ending}`);
     check(`  warm light only after letting go`, (await page.getAttribute("#warm", "opacity")) === "1");
     check(`  ending says it was scripted, not the model`, summary.includes("not made by the model"));
     check(`  summary lists the order (${order[0]} first)`, (await page.isVisible("#summary")) &&
@@ -71,8 +73,8 @@ async function repair(page, item, spot) {
   {
     const { page } = await open(browser, "mode=scripted&timeout=5");
     for (const item of ["lamp", "tea", "seating"]) { await repair(page, item, "window"); await idle(page); }
-    check("restored: caption nudges you to step outside", (await page.textContent("#caption")).includes("step outside"));
-    check("hint: nothing left to work on shimmers", (await page.$$(".hot.can:not([hidden])")).length === 0);
+    check("restored: caption reminds you of the crane cup", (await page.textContent("#caption")).includes("crane cup"));
+    check("hint: the stove shimmers to pour the cup", (await page.$$(".hot.can:not([hidden])")).length === 1);
     await page.click("#leave"); await page.click("#return"); await idle(page);
     const s = await w(page);
     check("ignored guest left; keeper still waiting; no warm light", s.ending === "unresolved" && !s.letGo &&
@@ -92,9 +94,26 @@ async function repair(page, item, spot) {
     await page.click("#leave"); await page.click("#return"); await idle(page);
     check("waited guest still on the bench after return", (await w(page)).guest.at === "bench" && (await page.textContent("#summary")).includes("not too late"));
     await page.fill("#talk", "Please sit inside now."); await page.click("#talk-form button"); await idle(page);
+    await hot(page, "guest");
+    check("looking at the guest reveals her lantern", (await page.textContent("#caption")).includes("lantern"));
+    await idle(page);
+    await hot(page, "stove"); await hot(page, "guest"); await idle(page);
     const s = await w(page);
-    check("seating the waiting guest lets the keeper go, then the choice is made", s.letGo && s.ending === "stayed" && s.guest.at === "seats", `${s.letGo} ${s.ending} ${s.guest.at}`);
+    check("serving the waiting guest her cup lets the keeper go, then the choice is made", s.letGo && s.ending === "stayed" && s.guest.at === "seats", `${s.letGo} ${s.ending} ${s.guest.at}`);
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/stayed.png` });
+    await page.close();
+  }
+
+  // 1e. Received but never given her cup: she slips away quietly.
+  {
+    const { page } = await open(browser, "mode=scripted&timeout=5");
+    await repair(page, "lamp"); await idle(page);
+    await page.click("text=Let them in."); await idle(page);
+    for (const item of ["tea", "seating"]) { await repair(page, item, "window"); await idle(page); }
+    await page.click("#leave"); await page.click("#return"); await idle(page);
+    const s = await w(page);
+    check("received without her cup → quiet departure, no letting go", s.ending === "unresolved_quiet" && !s.letGo &&
+      (await page.textContent("#summary")).includes("slipped away"));
     await page.close();
   }
 
