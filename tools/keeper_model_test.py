@@ -87,6 +87,7 @@ def build_world(items, player):
         "guest_at": "door" if guest else None,
         "keeper_at": "counter",
         "tea_ready": False,
+        "let_go": False,
     }
     return state, events
 
@@ -124,6 +125,8 @@ def action_allowed(action, state):
         return r["seating"] and outside
     if action in ("greet_at_door", "ask_guest_to_wait"):
         return outside
+    if action in ("stay_on", "move_on"):
+        return state["let_go"]
     return action in ACTIONS
 
 

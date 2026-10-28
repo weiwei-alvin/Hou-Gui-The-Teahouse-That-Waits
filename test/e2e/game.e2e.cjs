@@ -23,7 +23,7 @@ async function open(browser, query, viewport = { width: 1280, height: 900 }) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-  await page.goto(`${BASE}/index.html?${query}`);
+  await page.goto(`${BASE}/index.html?${query}${query.includes("intro=") ? "" : "&intro=0"}`);
   await page.waitForFunction(() => window.__teahouse && window.__teahouse.world);
   return { page, errors };
 }
@@ -44,7 +44,10 @@ async function repair(page, item, spot) {
   for (const [i, order] of ORDERS.entries()) {
     const spot = i % 2 ? "brazier" : "window";
     const { page, errors } = await open(browser, "mode=scripted&timeout=5");
-    for (const item of order) { await repair(page, item, spot); await idle(page); }
+    for (const item of order) {
+      await repair(page, item, spot); await idle(page);
+      if (item === "lamp") { await page.click("text=Let them in."); await idle(page); }
+    }
     let s = await w(page);
     const done = s.progress.lamp === 3 && s.progress.tea === 3 && s.progress.seating === 2;
     await page.click("#leave");
@@ -53,11 +56,62 @@ async function repair(page, item, spot) {
     s = await w(page);
     const summary = await page.textContent("#summary");
     check(`order ${order.join(" → ")} (${spot}) completes in the UI`, done && s.guest.at === "seats" && s.guest.served, JSON.stringify(s.progress));
+    check(`  received guest → keeper lets go, then makes the ending choice`, s.letGo && s.ending === "stayed", `${s.letGo} ${s.ending}`);
+    check(`  warm light only after letting go`, (await page.getAttribute("#warm", "opacity")) === "1");
+    check(`  ending says it was scripted, not the model`, summary.includes("not made by the model"));
     check(`  summary lists the order (${order[0]} first)`, (await page.isVisible("#summary")) &&
       summary.indexOf({ lamp: "Door lamp", tea: "Tea station", seating: "Waiting area" }[order[0]]) <
       summary.indexOf({ lamp: "Door lamp", tea: "Tea station", seating: "Waiting area" }[order[2]]));
     check(`  no page errors`, errors.length === 0, errors.join(" | "));
     if (i === 0 && SHOTS) await page.screenshot({ path: `${SHOTS}/restored.png` });
+    await page.close();
+  }
+
+  // 1b. Ignored guest: leaves, no letting go, stays cold, talk closed.
+  {
+    const { page } = await open(browser, "mode=scripted&timeout=5");
+    for (const item of ["lamp", "tea", "seating"]) { await repair(page, item, "window"); await idle(page); }
+    check("restored: caption nudges you to step outside", (await page.textContent("#caption")).includes("step outside"));
+    check("hint: nothing left to work on shimmers", (await page.$$(".hot.can:not([hidden])")).length === 0);
+    await page.click("#leave"); await page.click("#return"); await idle(page);
+    const s = await w(page);
+    check("ignored guest left; keeper still waiting; no warm light", s.ending === "unresolved" && !s.letGo &&
+      (await page.getAttribute("#warm", "opacity")) === "0" && (await page.textContent("#summary")).includes("gave up and left"));
+    check("after the ending, talking is closed", await page.isDisabled("#talk"));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/unresolved.png` });
+    await page.close();
+  }
+
+  // 1c. Guest only asked to wait: still waiting on return; seating them then lets the keeper go.
+  {
+    const { page } = await open(browser, "mode=scripted&timeout=5");
+    await repair(page, "lamp"); await idle(page);
+    check("hint: the next things to work on shimmer", (await page.$$(".hot.can:not([hidden])")).length === 2);
+    await page.click("text=Ask them to wait a moment."); await idle(page);
+    for (const item of ["tea", "seating"]) { await repair(page, item, "brazier"); await idle(page); }
+    await page.click("#leave"); await page.click("#return"); await idle(page);
+    check("waited guest still on the bench after return", (await w(page)).guest.at === "bench" && (await page.textContent("#summary")).includes("not too late"));
+    await page.fill("#talk", "Please sit inside now."); await page.click("#talk-form button"); await idle(page);
+    const s = await w(page);
+    check("seating the waiting guest lets the keeper go, then the choice is made", s.letGo && s.ending === "stayed" && s.guest.at === "seats", `${s.letGo} ${s.ending} ${s.guest.at}`);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/stayed.png` });
+    await page.close();
+  }
+
+  // 1d. Prologue on first visit, skippable, not shown again.
+  {
+    const { page } = await open(browser, "mode=scripted&intro=1");
+    check("prologue shows on first visit", await page.isVisible("#intro"));
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/intro.png` });
+    for (let i = 0; i < 3; i++) await page.click("#intro-next");
+    check("prologue last panel enters the teahouse", (await page.textContent("#intro-next")).includes("Enter"));
+    await page.click("#intro-next");
+    check("prologue closes", !(await page.isVisible("#intro")));
+    await page.reload(); await page.waitForFunction(() => window.__teahouse && window.__teahouse.world);
+    check("prologue not shown again after being seen", !(await page.isVisible("#intro")));
+    await page.click("#replay-intro");
+    check("prologue can be replayed", await page.isVisible("#intro"));
+    await page.click("#intro-skip");
     await page.close();
   }
 

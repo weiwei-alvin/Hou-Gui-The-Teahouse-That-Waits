@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  ACTIONS, ITEMS, REPAIRS, SEAT_SPOTS, STAGES,
+  ACTIONS, ENDING_ACTIONS, ITEMS, REPAIRS, SEAT_SPOTS, STAGES,
   actionBlocker, applyKeeperAction, createWorld, doStep, isRepaired, isRestored,
   leave, recordDialogue, returnToTeahouse, version,
 } from "../src/rules.js";
@@ -30,6 +30,7 @@ for (const order of ORDERS) {
       let lastStage = 0;
       for (const item of order) {
         repair(w, item, spot);
+        if (item === "lamp") assert.equal(applyKeeperAction(w, "greet_at_door").ok, true, "receive the guest");
         const s = STAGES.indexOf(w.stage);
         assert.ok(s >= lastStage, "stage never goes backwards");
         lastStage = s;
@@ -50,6 +51,11 @@ for (const order of ORDERS) {
       assert.ok(back.events.some((e) => e.kind === "life_resumed"));
       assert.equal(w.guest.at, "seats");
       assert.equal(w.guest.served, true);
+      assert.ok(back.events.some((e) => e.kind === "knot_untied"), "received guest + restored + returned → let go");
+      assert.equal(w.stage, "let_go");
+      const choice = spot === "window" ? "stay_on" : "move_on";
+      assert.equal(applyKeeperAction(w, choice).ok, true);
+      assert.equal(w.ending, choice === "stay_on" ? "stayed" : "moved_on");
     });
   }
 }
@@ -166,4 +172,55 @@ test("dialogue is recorded as an event and never changes repairs", () => {
   assert.equal(e.kind, "dialogue");
   assert.deepEqual(snapshot(w), before);
   assert.ok(ITEMS.every((i) => !isRepaired(w, i)));
+});
+
+function restoredWith(treat) {
+  const w = createWorld();
+  repair(w, "lamp");
+  if (treat) assert.equal(applyKeeperAction(w, treat).ok, true);
+  repair(w, "tea"); repair(w, "seating");
+  leave(w);
+  const back = returnToTeahouse(w);
+  return { w, back };
+}
+
+test("an ignored guest leaves, and the keeper keeps waiting: no letting go", () => {
+  const { w, back } = restoredWith(null);
+  assert.ok(back.events.some((e) => e.kind === "guest_left"));
+  assert.equal(w.guest.present, false);
+  assert.equal(w.letGo, false);
+  assert.equal(w.ending, "unresolved");
+  assert.equal(w.keeperAt, "door");
+  for (const a of ENDING_ACTIONS) assert.match(actionBlocker(w, a), /story has ended/);
+});
+
+test("a guest who only waited is still there on return, and can still be received", () => {
+  const { w, back } = restoredWith("ask_guest_to_wait");
+  assert.ok(back.events.some((e) => e.kind === "guest_still_waiting"));
+  assert.equal(w.letGo, false);
+  assert.equal(w.guest.at, "bench");
+  const r = applyKeeperAction(w, "invite_to_sit");
+  assert.equal(r.ok, true);
+  assert.ok(r.events.some((e) => e.kind === "knot_untied"));
+  assert.equal(w.letGo, true);
+});
+
+test("stay or move on is only possible after letting go, and only once", () => {
+  const w = createWorld();
+  for (const item of ITEMS) repair(w, item);
+  for (const a of ENDING_ACTIONS) assert.match(actionBlocker(w, a), /not let go yet/);
+  const { w: free } = restoredWith("greet_at_door");
+  assert.equal(free.letGo, true);
+  assert.match(actionBlocker(free, "greet_at_door"), /not allowed while the keeper is let_go/, "after letting go, only the choice remains");
+  assert.equal(applyKeeperAction(free, "move_on").ok, true);
+  assert.equal(free.keeperAt, "gone");
+  assert.match(actionBlocker(free, "stay_on"), /story has ended/);
+});
+
+test("letting go needs the return visit: restoring alone is not enough", () => {
+  const w = createWorld();
+  repair(w, "lamp"); applyKeeperAction(w, "greet_at_door");
+  repair(w, "tea"); repair(w, "seating");
+  assert.equal(isRestored(w), true);
+  assert.equal(w.letGo, false);
 });

@@ -210,6 +210,8 @@ export function scriptedTransport({ delayMs = 300 } = {}) {
     stay_at_counter: "I will stay where I am.",
     ask_for_help: "Help me a little more, living one.",
     none: "…",
+    stay_on: "I think I will keep the lamp lit a while longer.",
+    move_on: "The road is open now. Keep the tea warm for me.",
   };
   return ({ world, playerText, reasons, signal }) => new Promise((resolve, reject) => {
     const t = setTimeout(() => {
@@ -225,6 +227,7 @@ export function scriptedTransport({ delayMs = 300 } = {}) {
       else if (/help/.test(p)) action = "ask_for_help";
       const recent = world.events.slice(-12).reverse()
         .find((e) => ["repair_completed", "guest_arrived", "life_resumed"].includes(e.kind));
+      if (world.letGo && !world.ending) action = /\b(go|free|rest|move on)\b/.test(p) ? "move_on" : "stay_on";
       let line = LINES[action];
       if (!playerText && reasons.includes("life_resumed")) line = "Sit. Drink. The house remembers how.";
       else if (!playerText && reasons.includes("guest_arrived")) line = "Someone stands in the new light.";

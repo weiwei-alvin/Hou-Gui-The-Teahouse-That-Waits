@@ -6,6 +6,12 @@ A tiny ghost-town repair game. You fix a haunted teahouse, one lamp, stove and t
 
 Built for the DEV Hacktoberfest Open-Source AI Challenge, Week 4: *Ghost in the Machine*. The project and repository were created during the entry period (from 2026-10-26 09:00 PDT). Any commit after the deadline (2026-10-31 23:59 PDT) will be listed at the bottom of this file.
 
+## The story, without spoilers
+
+Your great-aunt left you a key and a letter you could not finish reading. The town on the map has been empty for decades. Someone behind the teahouse counter is still waiting, and not for you.
+
+Whether the keeper can let go is decided by the game's rules, from what you actually did. What the keeper does once free is left to the model: it may stay, or it may move on. Endings can differ between runs for that reason, and the model-layer test records how often each happens instead of promising one outcome.
+
 ## How the keeper is kept honest
 
 - **One way to change the world.** The model returns JSON with a line, an attitude, up to two event ids, and at most one action from a fixed list. The rules check the action's preconditions and, if they pass, execute it and record an event. The model cannot write state, history or repairs.
@@ -67,7 +73,7 @@ python tools/keeper_model_test.py --model gemma4:e4b --runs 3
 
 - Keeper model: Gemma 4 (`gemma4:e4b` by default), released by Google under the Apache 2.0 license, run locally through Ollama. The exact model id used in testing is recorded in the model-layer test output.
 - Code: MIT, see `LICENSE`.
-- Development was assisted by AI coding tools.
+- Development was assisted by AI coding tools. Prologue and scene art, when added under `art/`, are generated with ChatGPT image generation; the game runs without them.
 
 ## Commits after the deadline
 

@@ -32,7 +32,7 @@ export const REPAIRS = {
 
 export const SEAT_SPOTS = ["window", "brazier"];
 
-export const STAGES = ["wary", "cooperative", "lets_guests_in"]; // 戒備 → 能合作 → 不再阻攔客人
+export const STAGES = ["wary", "cooperative", "lets_guests_in", "let_go"]; // 戒備 → 能合作 → 不再阻攔客人 → 放下
 
 export const ACTIONS = [
   "none",
@@ -43,13 +43,20 @@ export const ACTIONS = [
   "greet_at_door",
   "ask_guest_to_wait",
   "ask_for_help",
+  "stay_on",
+  "move_on",
 ];
+
+// Only once the keeper has let go: what to do with that freedom is the keeper's own choice.
+export const ENDING_ACTIONS = ["stay_on", "move_on"];
+const WORKING_ACTIONS = ACTIONS.filter((a) => !ENDING_ACTIONS.includes(a));
 
 // Actions the keeper may take in each stage (preconditions still apply on top).
 const STAGE_ACTIONS = {
   wary: new Set(["none", "stay_at_counter", "ask_for_help"]),
-  cooperative: new Set(ACTIONS),
-  lets_guests_in: new Set(ACTIONS),
+  cooperative: new Set(WORKING_ACTIONS),
+  lets_guests_in: new Set(WORKING_ACTIONS),
+  let_go: new Set(["none", ...ENDING_ACTIONS]),
 };
 
 export function createWorld() {
@@ -58,10 +65,14 @@ export function createWorld() {
     progress: { lamp: 0, tea: 0, seating: 0 },
     seatingSpot: null,
     stage: "wary",
-    keeperAt: "counter", // counter | tea | door
-    guest: { present: false, at: null, greeted: false, served: false }, // at: door | bench | seats
+    keeperAt: "counter", // counter | tea | door | gone
+    // at: door | bench | seats. received = greeted at the door or seated; waited = asked to wait.
+    guest: { present: false, at: null, greeted: false, served: false, received: false, waited: false, left: false },
     teaReady: false,
     away: false,
+    revisited: false, // came back after the teahouse was restored
+    letGo: false, // the keeper's knot is untied (decided by these rules, never by the model)
+    ending: null, // null | "stayed" | "moved_on" | "unresolved"
   };
 }
 
@@ -123,7 +134,7 @@ export function doStep(world, item, stepId, opts = {}) {
     setStage(world, "cooperative", emitted);
     if (item === "lamp" && !world.guest.present) {
       // A lit lamp draws a guest from the street; without facilities they stop at the door.
-      world.guest = { present: true, at: "door", greeted: false, served: false };
+      world.guest = { ...world.guest, present: true, at: "door" };
       emitted.push(emit(world, "guest_arrived", "guest", { at: "door" }));
     }
     if (isRestored(world)) {
@@ -137,6 +148,8 @@ export function doStep(world, item, stepId, opts = {}) {
 /** Why an action is not allowed right now, or null if it is. */
 export function actionBlocker(world, action) {
   if (!ACTIONS.includes(action)) return `unknown action: ${action}`;
+  if (world.ending && action !== "none") return "the story has ended";
+  if (ENDING_ACTIONS.includes(action) && !world.letGo) return "the keeper has not let go yet";
   if (!STAGE_ACTIONS[world.stage].has(action)) return `not allowed while the keeper is ${world.stage}`;
   if (world.away && action !== "none") return "the player is away";
   const g = world.guest;
@@ -175,11 +188,24 @@ export function applyKeeperAction(world, action) {
       world.keeperAt = "door";
       g.at = "door";
       g.greeted = true;
+      g.received = true;
       break;
-    case "ask_guest_to_wait": g.at = "bench"; break;
+    case "ask_guest_to_wait":
+      g.at = "bench";
+      g.waited = true;
+      break;
     case "invite_to_sit":
       g.at = "seats";
+      g.received = true;
       world.keeperAt = "counter";
+      break;
+    case "stay_on":
+      world.ending = "stayed";
+      world.keeperAt = "counter";
+      break;
+    case "move_on":
+      world.ending = "moved_on";
+      world.keeperAt = "gone";
       break;
     case "prepare_tea":
       world.keeperAt = "tea";
@@ -188,11 +214,26 @@ export function applyKeeperAction(world, action) {
     case "ask_for_help": break;
   }
   const events = [emit(world, "keeper_action", "keeper", { action })];
+  if (action === "stay_on") extra.push(emit(world, "keeper_stayed", "keeper"));
+  if (action === "move_on") extra.push(emit(world, "keeper_moved_on", "keeper"));
   if (world.teaReady && g.at === "seats" && !g.served) {
     g.served = true;
     extra.push(emit(world, "guest_served", "guest"));
   }
+  checkKnot(world, extra);
   return { ok: true, events: events.concat(extra) };
+}
+
+/**
+ * The keeper lets go only when the rules say so: the teahouse is restored, the player has
+ * come back to it, and the guest was actually received. The model never decides this.
+ */
+function checkKnot(world, emitted) {
+  if (world.letGo || world.ending || world.away) return;
+  if (!(isRestored(world) && world.revisited && world.guest.received)) return;
+  world.letGo = true;
+  setStage(world, "let_go", emitted);
+  emitted.push(emit(world, "knot_untied", "keeper"));
 }
 
 export function recordDialogue(world, text) {
@@ -214,14 +255,30 @@ export function returnToTeahouse(world) {
   if (!world.away) return { ok: false, reason: "not away", events: [] };
   world.away = false;
   const events = [emit(world, "player_returned", "player")];
-  if (isRestored(world) && world.guest.present && !world.events.some((e) => e.kind === "life_resumed")) {
-    world.guest.at = "seats";
-    world.guest.greeted = true;
-    world.guest.served = true;
-    world.teaReady = true;
-    world.keeperAt = "counter";
-    events.push(emit(world, "life_resumed", "teahouse", { spot: world.seatingSpot }));
-    events.push(emit(world, "guest_served", "guest"));
+  if (isRestored(world) && !world.revisited) {
+    world.revisited = true;
+    const g = world.guest;
+    if (g.received) {
+      // A guest who was truly received stays and uses what you built.
+      g.at = "seats";
+      g.served = true;
+      world.teaReady = true;
+      world.keeperAt = "counter";
+      events.push(emit(world, "life_resumed", "teahouse", { spot: world.seatingSpot }));
+      events.push(emit(world, "guest_served", "guest"));
+    } else if (g.waited) {
+      // Asked to wait, never received: still waiting on the bench. It is not too late.
+      events.push(emit(world, "guest_still_waiting", "guest"));
+    } else {
+      // Ignored the whole time: the guest has gone, and the keeper keeps waiting at the door.
+      g.present = false;
+      g.at = null;
+      g.left = true;
+      world.keeperAt = "door";
+      world.ending = "unresolved";
+      events.push(emit(world, "guest_left", "guest"));
+    }
+    checkKnot(world, events);
   }
   return { ok: true, events };
 }
@@ -236,6 +293,7 @@ export function modelState(world) {
     guest_at: world.guest.at,
     keeper_at: world.keeperAt,
     tea_ready: world.teaReady,
+    let_go: world.letGo,
   };
 }
 
@@ -258,6 +316,11 @@ export function describeEvent(e) {
     case "player_left": return "You stepped away";
     case "player_returned": return "You came back";
     case "life_resumed": return "Life returned to the teahouse";
+    case "guest_still_waiting": return "The guest was still waiting on the bench";
+    case "guest_left": return "The guest had given up and left";
+    case "knot_untied": return "The keeper stopped waiting at the door";
+    case "keeper_stayed": return "The keeper chose to stay";
+    case "keeper_moved_on": return "The keeper moved on";
     default: return e.kind;
   }
 }

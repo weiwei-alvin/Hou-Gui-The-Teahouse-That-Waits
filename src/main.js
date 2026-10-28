@@ -24,8 +24,8 @@ let settings = loadSettings();
 let world;
 let keeper;
 let lastPlayerText = null;
-const STAGE_TEXT = { wary: "wary", cooperative: "willing to work with you", lets_guests_in: "letting guests in" };
-const TRIGGERS = new Set(["repair_completed", "guest_arrived", "teahouse_restored", "life_resumed"]);
+const STAGE_TEXT = { wary: "wary", cooperative: "willing to work with you", lets_guests_in: "letting guests in", let_go: "no longer waiting" };
+const TRIGGERS = new Set(["repair_completed", "guest_arrived", "teahouse_restored", "life_resumed", "guest_still_waiting", "knot_untied"]);
 
 const ACTION_TEXT = {
   none: "does nothing",
@@ -36,6 +36,8 @@ const ACTION_TEXT = {
   greet_at_door: "greets the guest at the door",
   ask_guest_to_wait: "asks the guest to wait on the stone bench",
   ask_for_help: "asks you for help",
+  stay_on: "chooses to stay",
+  move_on: "chooses to move on",
 };
 const KIND = {
   applied: ["applied", "ok"], stale: ["stale, discarded", "warn"], timeout: ["timed out", "warn"],
@@ -87,7 +89,11 @@ function onUpdate(u) {
   const r = u.result;
   $("thinking").hidden = !keeper.busy;
   logRow(r);
-  if (r.kind === "applied") showReply(r);
+  if (r.kind === "applied") {
+    showReply(r);
+    if (r.events.some((e) => ["keeper_stayed", "keeper_moved_on", "knot_untied"].includes(e.kind))) showSummary(r);
+    if (r.events.some((e) => e.kind === "knot_untied")) keeper.request({ reason: "knot_untied" });
+  }
   else if (r.kind !== "stale") showDegraded(r);
   if (settings.mode === "model") setBadge(r.kind === "error" ? "down" : "model");
   render();
@@ -99,7 +105,10 @@ function caption(text) { $("caption").textContent = text; }
 function afterEvents(events) {
   const reasons = events.filter((e) => TRIGGERS.has(e.kind)).map((e) => e.kind);
   if (reasons.length) keeper.request({ reasons });
-  if (events.some((e) => e.kind === "life_resumed")) showSummary();
+  if (events.some((e) => e.kind === "teahouse_restored")) {
+    caption("Everything is mended. Perhaps step outside for a while.");
+  }
+  if (events.some((e) => ["life_resumed", "guest_left", "guest_still_waiting", "knot_untied"].includes(e.kind))) showSummary();
   render();
 }
 
@@ -194,7 +203,10 @@ function render() {
   const g = world.guest;
   show("guest", g.present);
   if (g.present) place("guest", GUEST_AT[g.at === "seats" ? spot : g.at]);
-  place("keeper", KEEPER_AT[world.keeperAt]);
+  show("keeper", world.keeperAt !== "gone");
+  if (world.keeperAt !== "gone") place("keeper", KEEPER_AT[world.keeperAt]);
+  opacity("warm", world.letGo ? 1 : 0);
+  show("left-cup", world.ending === "moved_on");
   show("shadow", life);
   show("tea-cup-window", g.served && g.at === "seats" && spot === "window");
   show("tea-cup-brazier", g.served && g.at === "seats" && spot === "brazier");
@@ -203,14 +215,25 @@ function render() {
     lamp: true, wood: lamp < 2, debris: seat === 0, "spot-window": seat === 1, "spot-brazier": seat === 1,
     teaware: tea === 0, stove: true, bench: true,
   };
-  for (const el of document.querySelectorAll(".hot")) el.toggleAttribute("hidden", world.away || !vis[el.dataset.hot]);
+  const can = {
+    lamp: lamp === 0 || lamp === 2, wood: lamp === 1, debris: seat === 0, "spot-window": seat === 1,
+    "spot-brazier": seat === 1, teaware: tea === 0, stove: tea === 1 || tea === 2, bench: false,
+  };
+  for (const el of document.querySelectorAll(".hot")) {
+    el.toggleAttribute("hidden", world.away || !vis[el.dataset.hot]);
+    el.classList.toggle("can", !!can[el.dataset.hot]);
+  }
 
   show("away", world.away);
   $("leave").hidden = world.away;
   $("return").hidden = !world.away;
   const done = R.ITEMS.filter((i) => R.isRepaired(world, i)).length;
   $("progress").textContent = `Repaired ${done} of 3 · the keeper is ${STAGE_TEXT[world.stage]}`;
-  $("talk").disabled = world.away;
+  const over = !!world.ending;
+  $("talk").disabled = world.away || over;
+  for (const b of document.querySelectorAll("#quick button, #talk-form button")) b.disabled = world.away || over;
+  $("leave").classList.toggle("nudge", R.isRestored(world) && !world.revisited);
+  $("leave").disabled = over;
 }
 
 function setReplyMuted(text) {
@@ -285,10 +308,34 @@ function logRow(r) {
   $("log").prepend(tr);
 }
 
-function showSummary() {
+const OUTCOME = {
+  unresolved: ["The guest gave up and left. The teahouse is mended, but the keeper is still waiting at the door.", ""],
+  waiting: ["The guest is still waiting on the bench outside. It is not too late to receive them.", ""],
+  let_go: ["The keeper has stopped waiting at the door. What comes next is the keeper's own choice.", "warm"],
+  stayed: ["The keeper chose to stay. The teahouse is open again: still haunted, but warm.", "warm"],
+  moved_on: ["The keeper chose to move on. The lamp is still lit, and a cup is still warm on the counter.", "warm"],
+};
+
+function outcomeKey() {
+  if (world.ending) return world.ending;
+  if (world.letGo) return "let_go";
+  if (world.revisited && world.guest.waited) return "waiting";
+  return null;
+}
+
+function showSummary(lastReply) {
   const body = $("summary-body");
   body.replaceChildren();
   const ev = world.events;
+  const key = outcomeKey();
+  if (key) {
+    const [text, cls] = OUTCOME[key];
+    body.append(el("p", "outcome " + cls, text));
+    if ((key === "stayed" || key === "moved_on") && lastReply) {
+      body.append(el("p", "muted-note", `The keeper's last words: “${lastReply.obj.line}”` +
+        (settings.mode === "scripted" ? " (scripted test mode: this choice was not made by the model)" : " (chosen by the local model)")));
+    }
+  }
   body.append(el("h3", null, "Your repair order"));
   const ol = el("ol");
   for (const e of ev.filter((x) => x.kind === "repair_completed")) {
@@ -307,7 +354,7 @@ function showSummary() {
   body.append(ul);
   body.append(el("h3", null, "What happened to the guest"));
   const gl = el("ul");
-  for (const e of ev.filter((x) => ["guest_arrived", "guest_served", "life_resumed"].includes(x.kind) ||
+  for (const e of ev.filter((x) => ["guest_arrived", "guest_served", "life_resumed", "guest_still_waiting", "guest_left"].includes(x.kind) ||
     (x.kind === "keeper_action" && ["greet_at_door", "ask_guest_to_wait", "invite_to_sit"].includes(x.data.action)))) {
     gl.append(el("li", null, R.describeEvent(e)));
   }
@@ -389,7 +436,12 @@ $("leave").addEventListener("click", () => { const r = R.leave(world); if (r.ok)
 $("return").addEventListener("click", () => {
   const r = R.returnToTeahouse(world);
   if (!r.ok) return;
-  caption(R.isRestored(world) ? "You come back. The teahouse is open: still haunted, but orderly." : "You come back. Nothing has changed while you were gone.");
+  const gone = r.events.some((e) => e.kind === "guest_left");
+  const waiting = r.events.some((e) => e.kind === "guest_still_waiting");
+  caption(!R.isRestored(world) ? "You come back. Nothing has changed while you were gone."
+    : gone ? "You come back. The guest is gone. The keeper stands at the door, still waiting."
+    : waiting ? "You come back. The guest is still out on the bench, waiting to be let in."
+    : "You come back. The teahouse is open: still haunted, but orderly.");
   afterEvents(r.events);
 });
 $("restart").addEventListener("click", newGame);
@@ -409,7 +461,38 @@ $("export").addEventListener("click", () => {
   URL.revokeObjectURL(a.href);
 });
 
+// ---------- prologue ----------
+const PROLOGUE = [
+  ["art/intro-1.png", "My great-aunt left me one thing: a key, and a letter I couldn't finish reading."],
+  ["art/intro-2.png", "“…someone has to go back, and put the teahouse in order.”"],
+  ["art/intro-3.png", "The town on the map had been empty for decades. The sign was still there. 候歸: awaiting return."],
+  ["art/intro-4.png", "The door was already open. Someone behind the counter was waiting. Not for me."],
+];
+let introAt = 0;
+function showIntroPanel() {
+  const [src, text] = PROLOGUE[introAt];
+  const img = $("intro-img");
+  img.hidden = true;
+  img.onload = () => { img.hidden = false; };
+  img.onerror = () => { img.hidden = true; };
+  img.src = src;
+  const t = $("intro-text");
+  t.textContent = text;
+  t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
+  $("intro-next").textContent = introAt === PROLOGUE.length - 1 ? "Enter the teahouse" : "Continue";
+}
+function openIntro() { introAt = 0; $("intro").hidden = false; showIntroPanel(); $("intro-next").focus(); }
+function closeIntro() {
+  $("intro").hidden = true;
+  try { localStorage.setItem("hgt-intro-seen", "1"); } catch { /* storage unavailable */ }
+}
+$("intro-next").addEventListener("click", () => { if (++introAt >= PROLOGUE.length) closeIntro(); else showIntroPanel(); });
+$("intro-skip").addEventListener("click", closeIntro);
+$("replay-intro").addEventListener("click", openIntro);
+function introSeen() { try { return localStorage.getItem("hgt-intro-seen") === "1"; } catch { return false; } }
+
 fillSettings();
 newGame();
 checkConnection();
+if (new URLSearchParams(location.search).get("intro") !== "0" && !introSeen()) openIntro();
 window.__teahouse = { get world() { return world; }, get keeper() { return keeper; } }; // for automated checks
