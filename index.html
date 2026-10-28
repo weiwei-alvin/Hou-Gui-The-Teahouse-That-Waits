@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hou Gui Teahouse</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Hou Gui Teahouse <span class="zh">候歸茶館</span></h1>
+    <p class="sub">Repair a haunted teahouse. Its keeper is a ghost run by a local open-weight model.</p>
+  </div>
+  <div class="mode" id="mode-badge" role="status">Connecting…</div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+
+<main class="layout">
+  <section class="stage" aria-label="Teahouse">
+    <div class="scene-wrap">
+      <svg id="scene" viewBox="0 0 960 540" role="group" aria-label="The teahouse and the street outside">
+        <defs>
+          <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0a121b"/><stop offset="1" stop-color="#18252d"/>
+          </linearGradient>
+          <linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2a2a27"/><stop offset="1" stop-color="#1d1f1e"/>
+          </linearGradient>
+          <linearGradient id="g-wall" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1d2a33"/><stop offset="1" stop-color="#25323a"/>
+          </linearGradient>
+          <radialGradient id="g-lamp"><stop offset="0" stop-color="#d8fff6" stop-opacity=".75"/><stop offset=".35" stop-color="#9fe3d6" stop-opacity=".28"/><stop offset="1" stop-color="#9fe3d6" stop-opacity="0"/></radialGradient>
+          <radialGradient id="g-pool"><stop offset="0" stop-color="#b5efe4" stop-opacity=".32"/><stop offset="1" stop-color="#b5efe4" stop-opacity="0"/></radialGradient>
+          <radialGradient id="g-fire"><stop offset="0" stop-color="#cfe6ff" stop-opacity=".9"/><stop offset=".4" stop-color="#7fb2e8" stop-opacity=".35"/><stop offset="1" stop-color="#7fb2e8" stop-opacity="0"/></radialGradient>
+          <radialGradient id="g-ember"><stop offset="0" stop-color="#c8553d" stop-opacity=".7"/><stop offset="1" stop-color="#c8553d" stop-opacity="0"/></radialGradient>
+          <filter id="f-ghost" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.4"/></filter>
+          <filter id="f-soft"><feGaussianBlur stdDeviation="6"/></filter>
+        </defs>
+
+        <!-- ===== Background ===== -->
+        <rect width="960" height="540" fill="url(#g-sky)"/>
+        <g class="stars" fill="#9fb3bf" opacity=".5">
+          <circle cx="40" cy="40" r="1"/><circle cx="120" cy="22" r="1.2"/><circle cx="200" cy="60" r=".8"/><circle cx="270" cy="30" r="1"/><circle cx="90" cy="95" r=".7"/>
+        </g>
+        <circle cx="250" cy="70" r="26" fill="#cfd8d2" opacity=".18"/>
+        <!-- distant rooftops -->
+        <path d="M0 210 L30 190 L70 195 L95 170 L140 176 L165 160 L210 168 L240 150 L300 160 L330 150 L330 300 L0 300Z" fill="#111a20"/>
+        <!-- street -->
+        <path d="M0 300 L340 300 L340 540 L0 540Z" fill="#1b2226"/>
+        <g fill="none" stroke="#283238" stroke-width="2" opacity=".8">
+          <path d="M0 340 Q170 330 340 345"/><path d="M0 390 Q170 380 340 395"/><path d="M0 445 Q170 435 340 450"/><path d="M0 500 Q170 490 340 505"/>
+          <path d="M60 300 L40 540"/><path d="M140 300 L130 540"/><path d="M220 300 L225 540"/><path d="M300 300 L315 540"/>
+        </g>
+
+        <!-- interior -->
+        <rect x="356" y="80" width="604" height="230" fill="url(#g-wall)"/>
+        <path d="M356 310 L960 310 L960 540 L340 540Z" fill="url(#g-floor)"/>
+        <g stroke="#34322d" stroke-width="2" opacity=".9">
+          <path d="M356 350 L960 350"/><path d="M352 395 L960 395"/><path d="M348 445 L960 445"/><path d="M344 495 L960 495"/>
+        </g>
+        <!-- roof eave -->
+        <path d="M300 92 Q330 70 360 64 L940 64 Q960 66 975 52 L975 90 L300 100Z" fill="#141c22"/>
+        <path d="M300 100 L975 90" stroke="#7a3b32" stroke-width="3" opacity=".7"/>
+        <g fill="#0f161b"><rect x="380" y="64" width="12" height="20"/><rect x="560" y="64" width="12" height="20"/><rect x="740" y="64" width="12" height="20"/><rect x="920" y="64" width="12" height="20"/></g>
+        <!-- lattice window -->
+        <g>
+          <rect x="455" y="118" width="170" height="120" fill="#172630" stroke="#3b2f26" stroke-width="6"/>
+          <g stroke="#3b2f26" stroke-width="3"><path d="M512 118 V238"/><path d="M568 118 V238"/><path d="M455 158 H625"/><path d="M455 198 H625"/></g>
+          <g stroke="#58707a" stroke-width="1" opacity=".5"><path d="M455 118 L625 238"/><path d="M625 118 L455 238"/></g>
+          <rect x="455" y="118" width="170" height="120" fill="#a9d9e0" opacity=".05"/>
+        </g>
+        <!-- shelves above counter -->
+        <g>
+          <rect x="700" y="130" width="230" height="6" fill="#3b2f26"/>
+          <rect x="700" y="185" width="230" height="6" fill="#3b2f26"/>
+          <g fill="#42545c"><rect x="712" y="104" width="18" height="26" rx="4"/><rect x="740" y="110" width="14" height="20" rx="4"/><rect x="830" y="100" width="22" height="30" rx="5"/><rect x="890" y="108" width="16" height="22" rx="4"/></g>
+          <g fill="#5a3e33"><rect x="760" y="160" width="20" height="25" rx="3"/><rect x="860" y="158" width="26" height="27" rx="3"/></g>
+          <!-- an old vermilion talisman -->
+          <rect x="640" y="140" width="16" height="46" fill="#8e3a2e" opacity=".8"/>
+        </g>
+        <!-- side wall with door -->
+        <path d="M340 80 L356 80 L356 236 L340 240Z" fill="#141c22"/>
+        <path d="M340 392 L356 388 L356 470 L340 476Z" fill="#141c22"/>
+        <rect x="336" y="232" width="24" height="10" fill="#3b2f26"/>
+        <path d="M340 240 L356 236 L356 388 L340 392Z" fill="#0b1014" opacity=".6"/>
+
+        <!-- ===== Stone bench (outside, always usable, not part of the repair) ===== -->
+        <g id="bench">
+          <rect x="60" y="430" width="140" height="16" rx="3" fill="#4a5256"/>
+          <rect x="72" y="446" width="14" height="22" fill="#3a4145"/><rect x="174" y="446" width="14" height="22" fill="#3a4145"/>
+        </g>
+
+        <!-- ===== Brazier (decor) ===== -->
+        <g id="brazier">
+          <path d="M770 452 L790 500 M800 452 L800 502 M830 452 L810 500" stroke="#2b2f33" stroke-width="4"/>
+          <path d="M760 440 Q800 470 840 440 L836 452 Q800 476 764 452Z" fill="#3a3f44"/>
+          <ellipse id="brazier-ember" cx="800" cy="442" rx="34" ry="12" fill="url(#g-ember)" opacity="0"/>
+        </g>
+
+        <!-- ===== Lamp ===== -->
+        <g id="lamp-pool" opacity="0"><ellipse cx="250" cy="470" rx="150" ry="45" fill="url(#g-pool)"/></g>
+        <g id="lamp-fallen">
+          <g transform="rotate(-84 250 470)">
+            <rect x="245" y="320" width="10" height="150" fill="#3a2c24"/>
+            <rect x="233" y="292" width="34" height="34" fill="#22282b" stroke="#3a2c24" stroke-width="3"/>
+            <path d="M236 296 L262 322" stroke="#56636a" stroke-width="1.5"/>
+          </g>
+        </g>
+        <g id="lamp-up" hidden>
+          <rect x="236" y="466" width="28" height="8" fill="#2b2f33"/>
+          <rect x="245" y="320" width="10" height="150" fill="#3a2c24"/>
+          <path id="lamp-crack" d="M250 380 L246 398 L253 410 L248 430" stroke="#121619" stroke-width="2" fill="none"/>
+          <g id="lamp-planks" hidden>
+            <rect x="240" y="384" width="20" height="9" fill="#6b5240" transform="rotate(-8 250 388)"/>
+            <rect x="240" y="414" width="20" height="9" fill="#5e4838" transform="rotate(6 250 418)"/>
+          </g>
+          <path d="M228 320 L272 320 L264 312 L236 312Z" fill="#141c22"/>
+          <rect id="lamp-box" x="233" y="282" width="34" height="38" fill="#22282b" stroke="#3a2c24" stroke-width="3"/>
+          <rect id="lamp-light" x="238" y="287" width="24" height="28" fill="#c9fff3" opacity="0"/>
+          <path d="M231 282 L250 266 L269 282Z" fill="#141c22"/>
+        </g>
+        <circle id="lamp-glow" cx="250" cy="301" r="70" fill="url(#g-lamp)" opacity="0"/>
+        <!-- scrap wood by the door -->
+        <g id="wood">
+          <rect x="262" y="478" width="56" height="9" fill="#5e4838" transform="rotate(-12 290 482)"/>
+          <rect x="268" y="470" width="44" height="8" fill="#6b5240" transform="rotate(9 290 474)"/>
+          <rect x="276" y="486" width="36" height="7" fill="#4f3c30"/>
+        </g>
+
+        <!-- ===== Waiting area: debris, then furniture at the chosen spot ===== -->
+        <g id="debris">
+          <rect x="470" y="352" width="58" height="44" fill="#4b3a2e" transform="rotate(-9 499 374)"/>
+          <rect x="520" y="340" width="50" height="40" fill="#3f3027" transform="rotate(14 545 360)"/>
+          <rect x="560" y="372" width="62" height="30" fill="#55402f" transform="rotate(-4 591 387)"/>
+          <path d="M480 340 L600 405" stroke="#2d241d" stroke-width="5"/>
+          <path d="M470 400 L560 330" stroke="#2d241d" stroke-width="4"/>
+        </g>
+        <g id="seats-window" hidden>
+          <ellipse cx="545" cy="388" rx="44" ry="14" fill="#4a3a2d"/><rect x="541" y="390" width="8" height="26" fill="#3b2f26"/>
+          <rect x="482" y="384" width="26" height="22" rx="3" fill="#3f3128"/><rect x="584" y="384" width="26" height="22" rx="3" fill="#3f3128"/>
+        </g>
+        <g id="seats-brazier" hidden>
+          <ellipse cx="690" cy="462" rx="44" ry="14" fill="#4a3a2d"/><rect x="686" y="464" width="8" height="26" fill="#3b2f26"/>
+          <rect x="628" y="458" width="26" height="22" rx="3" fill="#3f3128"/><rect x="726" y="474" width="26" height="22" rx="3" fill="#3f3128"/>
+        </g>
+        <g id="spot-window" class="spot" hidden><ellipse cx="545" cy="388" rx="58" ry="22"/><text x="545" y="430" text-anchor="middle">by the window</text></g>
+        <g id="spot-brazier" class="spot" hidden><ellipse cx="690" cy="462" rx="58" ry="22"/><text x="690" y="510" text-anchor="middle">by the brazier</text></g>
+        <g id="tea-cup-window" class="tea-cup" hidden><rect x="538" y="374" width="12" height="9" rx="2" fill="#a9b9b5"/><path class="steam" d="M544 370 q-6 -10 0 -20 q6 -10 0 -20" stroke="#cfe3e0" stroke-width="2" fill="none"/></g>
+        <g id="tea-cup-brazier" class="tea-cup" hidden><rect x="683" y="448" width="12" height="9" rx="2" fill="#a9b9b5"/><path class="steam" d="M689 444 q-6 -10 0 -20 q6 -10 0 -20" stroke="#cfe3e0" stroke-width="2" fill="none"/></g>
+
+        <!-- ===== Keeper (drawn before the counter so the counter hides the robe hem) ===== -->
+        <g id="keeper" class="ghost keeper" transform="translate(810 262)">
+          <g filter="url(#f-ghost)">
+            <path d="M-24 0 Q-30 -60 -14 -92 Q0 -112 14 -92 Q30 -60 24 0 Q16 -8 10 2 Q4 -8 -2 2 Q-8 -8 -14 2 Q-20 -8 -24 0Z" fill="#a9c7cb" opacity=".78"/>
+            <ellipse cx="0" cy="-100" rx="13" ry="16" fill="#c4dcdd" opacity=".85"/>
+            <path d="M-14 -70 Q-34 -54 -30 -34" stroke="#a9c7cb" stroke-width="7" fill="none" opacity=".7"/>
+            <path d="M14 -70 Q34 -54 30 -34" stroke="#a9c7cb" stroke-width="7" fill="none" opacity=".7"/>
+          </g>
+          <ellipse cx="-5" cy="-102" rx="2.2" ry="3" fill="#0c1418"/><ellipse cx="5" cy="-102" rx="2.2" ry="3" fill="#0c1418"/>
+        </g>
+
+        <!-- counter -->
+        <g>
+          <rect x="690" y="246" width="240" height="14" fill="#4a3a2d"/>
+          <rect x="694" y="260" width="232" height="44" fill="#33281f"/>
+          <path d="M694 282 H926" stroke="#271e18" stroke-width="2"/>
+        </g>
+
+        <!-- ===== Tea station ===== -->
+        <g id="tea-station">
+          <rect x="820" y="372" width="122" height="12" fill="#4a3a2d"/>
+          <rect x="826" y="384" width="10" height="44" fill="#33281f"/><rect x="926" y="384" width="10" height="44" fill="#33281f"/>
+          <g id="stove-broken">
+            <path d="M848 372 L852 336 L898 336 L902 372Z" fill="#6c4a3a"/>
+            <path d="M866 336 L872 352 L864 362 L874 372" stroke="#1d1410" stroke-width="2.5" fill="none"/>
+            <path d="M898 336 L904 330 L894 324" fill="#5a3e31"/>
+          </g>
+          <g id="stove-fixed" hidden>
+            <path d="M848 372 L852 336 L898 336 L902 372Z" fill="#74503f"/>
+            <rect x="862" y="352" width="26" height="14" rx="3" fill="#1b1512"/>
+          </g>
+          <ellipse id="stove-fire" cx="875" cy="356" rx="22" ry="16" fill="url(#g-fire)" opacity="0"/>
+          <g id="teaware-set" hidden>
+            <path d="M906 360 q0 -14 14 -14 q14 0 14 14z" fill="#9fb0ac"/><rect x="930" y="350" width="8" height="4" fill="#9fb0ac"/>
+            <rect x="908" y="362" width="9" height="8" rx="2" fill="#a9b9b5"/><rect x="921" y="362" width="9" height="8" rx="2" fill="#a9b9b5"/>
+          </g>
+          <g id="kettle-steam" opacity="0"><path class="steam" d="M875 330 q-7 -12 0 -24 q7 -12 0 -24" stroke="#cfe3e0" stroke-width="2.5" fill="none"/></g>
+        </g>
+        <!-- teaware scattered on the floor -->
+        <g id="teaware-floor">
+          <rect x="700" y="500" width="11" height="8" rx="2" fill="#8d9a97" transform="rotate(40 705 504)"/>
+          <rect x="740" y="512" width="11" height="8" rx="2" fill="#8d9a97" transform="rotate(-70 745 516)"/>
+          <path d="M780 498 q0 -12 12 -12 q12 0 12 12z" fill="#7d8a87" transform="rotate(100 792 492)"/>
+          <rect x="820" y="520" width="11" height="8" rx="2" fill="#8d9a97"/>
+          <path d="M760 488 l8 4 l-3 6z" fill="#8d9a97"/>
+        </g>
+
+        <!-- the keeper's shadow pours tea once life resumes -->
+        <g id="shadow" hidden transform="translate(905 372)">
+          <path d="M-14 0 Q-18 -40 -8 -60 Q0 -72 8 -60 Q18 -40 14 0Z" fill="#06090c" opacity=".75"/>
+          <path d="M10 -40 L28 -26" stroke="#06090c" stroke-width="6" opacity=".75"/>
+        </g>
+
+        <!-- ===== Guest ===== -->
+        <g id="guest" class="ghost guest" hidden transform="translate(300 400)">
+          <g filter="url(#f-ghost)">
+            <path d="M-20 0 Q-24 -50 -10 -74 Q0 -88 10 -74 Q24 -50 20 0 Q13 -7 7 2 Q1 -7 -5 2 Q-11 -7 -20 0Z" fill="#b7a6c4" opacity=".7"/>
+            <path d="M-13 -66 Q0 -96 13 -66 Q0 -58 -13 -66Z" fill="#8d7c9a" opacity=".8"/>
+          </g>
+          <circle cx="-4" cy="-66" r="1.8" fill="#e9f2f4"/><circle cx="4" cy="-66" r="1.8" fill="#e9f2f4"/>
+        </g>
+
+        <!-- ===== Hotspots (click or Enter to look / work) ===== -->
+        <g id="hotspots">
+          <rect class="hot" data-hot="lamp" x="150" y="262" width="130" height="224" tabindex="0" role="button" aria-label="Lamp post"/>
+          <rect class="hot" data-hot="wood" x="256" y="462" width="70" height="38" tabindex="0" role="button" aria-label="Scrap wood"/>
+          <rect class="hot" data-hot="debris" x="462" y="326" width="170" height="86" tabindex="0" role="button" aria-label="Broken crates"/>
+          <rect class="hot" data-hot="spot-window" x="487" y="366" width="116" height="44" tabindex="0" role="button" aria-label="Place furniture by the window"/>
+          <rect class="hot" data-hot="spot-brazier" x="632" y="440" width="116" height="44" tabindex="0" role="button" aria-label="Place furniture by the brazier"/>
+          <rect class="hot" data-hot="stove" x="840" y="320" width="104" height="66" tabindex="0" role="button" aria-label="Tea station and stove"/>
+          <rect class="hot" data-hot="teaware" x="690" y="482" width="150" height="50" tabindex="0" role="button" aria-label="Scattered teaware"/>
+          <rect class="hot" data-hot="bench" x="56" y="424" width="148" height="46" tabindex="0" role="button" aria-label="Stone bench"/>
+        </g>
+
+        <!-- away overlay -->
+        <g id="away" hidden>
+          <rect width="960" height="540" fill="#05080b" opacity=".86"/>
+          <text x="480" y="260" text-anchor="middle" class="away-text">You wander the dark street for a while…</text>
+        </g>
+      </svg>
+    </div>
+    <p id="caption" class="caption" aria-live="polite">Click things in the scene to look at them and repair them.</p>
+    <div class="stage-actions">
+      <button id="leave">Step outside for a while</button>
+      <button id="return" hidden>Return to the teahouse</button>
+      <span class="progress" id="progress"></span>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <section class="keeper-box" aria-label="The keeper">
+      <h2>The Keeper</h2>
+      <div id="thinking" class="thinking" hidden><span class="dot"></span>The keeper is thinking… you can keep repairing.</div>
+      <div id="reply" class="reply"><p class="line muted">The keeper watches you from behind the counter.</p></div>
+    </section>
+
+    <section class="talk" aria-label="Talk to the keeper">
+      <div class="quick" id="quick"></div>
+      <form id="talk-form" class="talk-row">
+        <input id="talk" type="text" maxlength="200" autocomplete="off" placeholder="Say something to the keeper…" aria-label="Say something to the keeper">
+        <button type="submit">Say</button>
+      </form>
+    </section>
+
+    <section id="summary" class="summary" hidden aria-label="What you changed">
+      <h2>What you changed</h2>
+      <div id="summary-body"></div>
+      <button id="restart">Start over</button>
+    </section>
+
+    <details class="dev">
+      <summary>Settings and request log</summary>
+      <div class="settings">
+        <label>Mode
+          <select id="set-mode">
+            <option value="model">Local model (Ollama)</option>
+            <option value="scripted">Scripted test mode (no model)</option>
+          </select>
+        </label>
+        <label>Ollama address <input id="set-host" type="text"></label>
+        <label>Model <input id="set-model" type="text"></label>
+        <label>Timeout (s) <input id="set-timeout" type="number" min="1" step="0.5"></label>
+        <button id="set-apply">Apply and check connection</button>
+        <p id="conn" class="conn"></p>
+      </div>
+      <div class="log-wrap">
+        <table class="log">
+          <thead><tr><th>#</th><th>Sent at state</th><th>Time</th><th>Result</th><th>Action</th><th>Detail</th></tr></thead>
+          <tbody id="log"></tbody>
+        </table>
+      </div>
+      <button id="export">Download session log (JSON)</button>
+    </details>
+  </aside>
+</main>
+
+<footer class="foot">
+  In model mode, keeper replies come from a model running on this computer. Facts under “Related events” are generated by the game from its event log, not by the model.
+</footer>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

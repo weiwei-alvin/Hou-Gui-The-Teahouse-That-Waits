@@ -1,0 +1,15 @@
+{
+  "name": "hou-gui-teahouse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tiny ghost-town repair game whose teahouse keeper runs on a local open-weight model (Gemma via Ollama).",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "start": "python -m http.server 8000"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
