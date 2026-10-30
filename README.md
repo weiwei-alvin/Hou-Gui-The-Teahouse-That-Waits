@@ -1,10 +1,10 @@
-# Hou Gui Teahouse 候歸茶館
+# Hou Gui: The Teahouse That Waits 候歸茶館
 
 A tiny ghost-town repair game. You fix a haunted teahouse, one lamp, stove and table at a time. Its keeper is a ghost whose words and choices come from an open-weight model running on your own computer (Gemma 4 through [Ollama](https://ollama.com)).
 
 **The ghost is the model; the machine is the rules.** The keeper can feel, interpret and propose. Only the game's rules can change the world, and only the game's event log decides what happened.
 
-Built for the DEV Hacktoberfest Open-Source AI Challenge, Week 4: *Ghost in the Machine*. The project and repository were created during the entry period (from 2026-10-26 09:00 PDT). Any commit after the deadline (2026-10-31 23:59 PDT) will be listed at the bottom of this file.
+Started in October 2026, inspired by the DEV Hacktoberfest *Ghost in the Machine* theme. Still in development.
 
 ## The story, without spoilers
 
@@ -74,7 +74,3 @@ python tools/keeper_model_test.py --model gemma4:e4b --runs 3
 - Keeper model: Gemma 4 (`gemma4:e4b` by default), released by Google under the Apache 2.0 license, run locally through Ollama. The exact model id used in testing is recorded in the model-layer test output.
 - Code: MIT, see `LICENSE`.
 - Development was assisted by AI coding tools. Prologue and scene art, when added under `art/`, are generated with ChatGPT image generation; the game runs without them.
-
-## Commits after the deadline
-
-None yet.

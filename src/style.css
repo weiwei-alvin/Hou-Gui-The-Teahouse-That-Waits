@@ -161,3 +161,4 @@ button.card:hover .frame, button.card:focus-visible .frame { transform: translat
 .card.played { animation: played .35s ease forwards; }
 @keyframes played { to { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .card.played { animation: none; } .card .frame { transition: none; } }
+.top .tagline { margin: 2px 0 0; font: italic 15px var(--serif); color: var(--gold); }
