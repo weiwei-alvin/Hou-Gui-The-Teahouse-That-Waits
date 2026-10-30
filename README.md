@@ -40,7 +40,7 @@ Open <http://localhost:8000>. Open it through `http://localhost`, not by double-
 ## Tests
 
 ```sh
-npm test                                   # Node 20+, no dependencies
+npm test                                   # Node 22+, no dependencies
 ```
 
 - `test/rules.test.mjs`: all six repair orders × both seating spots complete; out-of-order steps, repeated repairs and illegal actions are refused; keeper actions never touch repairs or history; stages only move forward.

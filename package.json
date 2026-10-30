@@ -10,6 +10,6 @@
     "start": "python -m http.server 8000"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
