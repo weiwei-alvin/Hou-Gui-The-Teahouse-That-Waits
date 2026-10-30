@@ -9,8 +9,9 @@
 | 場景 | 10 | `00-base.png`、`lamp-1~3`、`tea-1~3`、`seat-1`、`seat-2-window`、`seat-2-brazier` | 必做 |
 | 序幕 | 3 | `intro-1.png` ~ `intro-3.png`（第 4 格直接用 `00-base.png`） | 必做 |
 | 結局暖光 | 1 | `warm.png` | 選做（沒有的話遊戲用疊色代替） |
+| 卡片插圖 | 15 | `card-*.png` | 選做（沒有的話用現在的線條圖示） |
 
-**不用畫的**：掌櫃、客人、鶴杯、她的小燈籠、卡片圖示。這些由程式另外畫上去，所以所有圖裡都不要有人物。
+**不用畫的**：場景裡的掌櫃、客人、鶴杯、她的小燈籠，以及卡框和卡片文字。這些由程式另外畫上去，所以所有圖裡都不要有人物。
 
 做好的圖全部放進專案的 `art/` 資料夾，檔名要完全照表。
 
@@ -598,6 +599,160 @@ Edit this image. Change only the lighting: the door lantern and the stove now gl
 
 ---
 
+## 四、卡片插圖（15 張，選做）
+
+遊戲現在的卡片，是在拱形卡框裡畫一個白色線條圖示，跟魔法生涯的卡片同一種樣式，不另外畫圖也能用。這一節是想讓每張卡改成插畫時用的。
+
+- **卡框、編號、名稱、說明都由程式畫**，圖裡只要畫中間那個物件，不要有邊框或文字。
+- 比例是 2:3 直式，物件放正中央，四周留空，因為圖會被裁成拱形。
+- 每張都開新對話，不用上傳圖片。
+- **不要畫出姑婆的樣子。**「仔細看客人」那張只畫燈籠和一截袖子，客人的身分要留給玩家自己發現。
+- 全部做完再一次交，畫風才比較一致。只做一部分的話，那幾張會和其他卡的線條圖示不搭。
+
+| 檔名 | 卡片 |
+|---|---|
+| `card-lamp-raise.png` | 扶正燈柱（Raise the lamp post） |
+| `card-lamp-patch.png` | 用木料補好（Brace with scrap wood） |
+| `card-lamp-light.png` | 點亮門燈（Light the lamp） |
+| `card-tea-gather.png` | 收拾茶具（Gather the teaware） |
+| `card-tea-stove.png` | 修好爐子（Mend the stove） |
+| `card-tea-fire.png` | 生火（Light the stove） |
+| `card-seat-clear.png` | 清走木箱（Clear the crates） |
+| `card-seat-window.png` | 窗邊座位（Seats by the window） |
+| `card-seat-brazier.png` | 火盆旁座位（Seats by the brazier） |
+| `card-cup-pour.png` | 倒茶進鶴杯（Fill the crane cup） |
+| `card-guest-look.png` | 仔細看客人（Look at the guest） |
+| `card-cup-serve.png` | 放下鶴杯（Set down the crane cup） |
+| `card-keep-letter.png` | 姑婆的信（Great-aunt's letter） |
+| `card-keep-crane-cup.png` | 鶴杯（Crane cup） |
+| `card-keep-lantern.png` | 她的小燈籠（Her small lantern） |
+
+### 行動卡（12 張）
+
+#### `card-lamp-raise.png`｜扶正燈柱
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A cracked wooden lantern post lying fallen on wet cobblestones at night, its small paper-and-wood lantern dark and damaged. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-lamp-patch.png`｜用木料補好
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+Close-up of a cracked wooden post braced with two strips of salvaged wood, tied with rough rope. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-lamp-light.png`｜點亮門燈
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small paper-and-wood lantern on an old post, just lit from within with a pale, cold blue-green glow against the dark. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-tea-gather.png`｜收拾茶具
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+Three worn ceramic teacups and a chipped teapot gathered together on dusty floorboards. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-tea-stove.png`｜修好爐子
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small traditional clay stove with a crack freshly sealed by darker, smoother clay; cold and unlit. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-tea-fire.png`｜生火
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small clay stove lit with a pale spectral-blue flame, a dark metal kettle on top with a thin wisp of steam. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-seat-clear.png`｜清走木箱
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A heap of broken wooden crates and loose boards beneath a carved wooden lattice window, with something faintly pale half-hidden underneath. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-seat-window.png`｜窗邊座位
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small round dark wooden tea table with two simple wooden chairs beneath a carved lattice window, lit by cold moonlight. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-seat-brazier.png`｜火盆旁座位
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small round dark wooden tea table with two simple wooden chairs beside a cold three-legged iron brazier. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-cup-pour.png`｜倒茶進鶴杯
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+Warm tea being poured into an old pale celadon cup with a small crane painted on it; a thin curl of steam. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-guest-look.png`｜仔細看客人
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small hand-held lantern, the same simple paper-and-wood design as a door lantern, held by a pale translucent sleeve; only the lantern and the sleeve, no figure, no face. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-cup-serve.png`｜放下鶴杯
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+An old pale celadon cup with a small crane painted on it, full of tea, set down on a dark wooden table; a faint warm glow at its rim. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+### 收藏卡（3 張）
+
+#### `card-keep-letter.png`｜姑婆的信
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+An opened old paper envelope with an old brass key with a worn red tassel, and a letter whose ink is blurred by rain so nothing is readable. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-keep-crane-cup.png`｜鶴杯
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+An old pale celadon teacup with a small crane painted on it, slightly chipped at the rim, shown alone like a cherished keepsake. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+#### `card-keep-lantern.png`｜她的小燈籠
+
+```
+A single card illustration, portrait 2:3. Style: cinematic East Asian Gothic storybook fantasy. Hand-painted 2D illustration with intricate yet confident ink-like outlines, painterly textures with controlled brushwork, refined anime-inspired detailing, soft atmospheric shadows. Palette: deep midnight ink blue, desaturated teal, cold blue-green, charcoal brown, muted violet-grey, small accents of weathered vermilion. Avoid photorealism and 3D rendering.
+
+A small hand-held paper-and-wood lantern glowing faintly cold blue-green, shown alone like a keepsake. Composition: one clear subject, centered, with simple dark background and generous empty margin on all sides, because the image will be cropped into an arched card window. No border, no frame, no card layout, no people, no faces, no text, no letters, no numbers, no logos, no watermark.
+```
+
+---
+
 ## 交付
 
-14 張（或 13 張）都做好後，連同檔名一起交給 Claude。Claude 會先檢查每張修改圖有沒有改到選取範圍以外的地方，再按門燈、茶爐、座位三個區域裁切合成，放進遊戲。
+必做的 13 張做好後（選做的可以之後再補），連同檔名一起交給 Claude。Claude 會先檢查每張修改圖有沒有改到選取範圍以外的地方，再按門燈、茶爐、座位三個區域裁切合成，放進遊戲。
