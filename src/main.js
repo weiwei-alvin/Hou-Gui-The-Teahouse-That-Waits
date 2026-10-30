@@ -1,5 +1,6 @@
 import * as R from "./rules.js";
 import { KeeperClient, ollamaTransport, scriptedTransport } from "./keeper.js";
+import { GLYPHS, handCards, keepsakeCards } from "./cards.js";
 
 const $ = (id) => document.getElementById(id);
 const prompt = await (await fetch("src/keeper_prompt.json")).json();
@@ -181,6 +182,69 @@ function say(text) {
   render();
 }
 
+// ---------- cards ----------
+const SVGNS = "http://www.w3.org/2000/svg";
+function cardFrame(glyph, special, number) {
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.setAttribute("viewBox", "0 0 82 104");
+  svg.setAttribute("aria-hidden", "true");
+  const arch = special ? "var(--arch-special)" : "var(--arch)";
+  svg.innerHTML = `
+    <rect x="1" y="1" width="80" height="102" rx="3" fill="#0b1014" stroke="var(--gold-dim)"/>
+    <path d="M9 100 V44 Q9 12 41 8 Q73 12 73 44 V100 Z" fill="${arch}" stroke="var(--gold)" stroke-width="1.5"/>
+    <path d="M15 98 V46 Q15 18 41 14 Q67 18 67 46 V98" fill="none" stroke="var(--gold-dim)" stroke-width=".8"/>
+    <circle cx="10" cy="10" r="6" fill="#0b1014" stroke="var(--gold-dim)"/><path d="M7 7 L13 13 M13 7 L7 13" stroke="var(--gold)" stroke-width="1"/>
+    <circle cx="72" cy="10" r="6" fill="#0b1014" stroke="var(--gold-dim)"/>
+    <text x="72" y="13.5" text-anchor="middle" font-size="9" fill="var(--gold)">${number}</text>
+    <g transform="translate(21 44)"><path d="${GLYPHS[glyph]}" fill="none" stroke="#e8f1ef" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  return svg;
+}
+
+function cardEl(card, index, playable) {
+  const node = document.createElement(playable ? "button" : "div");
+  node.className = "card";
+  node.setAttribute("role", "listitem");
+  node.dataset.card = card.id;
+  const frame = el("div", "frame");
+  frame.append(cardFrame(card.glyph, card.special, index + 1));
+  const body = el("div", "body");
+  body.append(el("div", "meta", playable ? `Action card (${card.group})` : "Keepsake"));
+  body.append(el("div", "name", card.title));
+  body.append(el("p", "desc", card.text));
+  if (playable && card.special) {
+    const chips = el("div", "chips");
+    chips.append(el("span", "chip-sq", "Her cup"));
+    body.append(chips);
+  }
+  node.append(frame, body);
+  if (playable) {
+    node.type = "button";
+    node.addEventListener("click", () => {
+      if (world.away) return;
+      node.classList.add("played");
+      HOT[card.hot]();
+    });
+  }
+  return node;
+}
+
+function renderCards() {
+  const hand = handCards(world);
+  $("hand").dataset.empty = world.ending ? "The story has ended." : world.away ? "You are away from the teahouse."
+    : R.isRestored(world) ? "Nothing left to mend. Perhaps step outside, or talk to the keeper." : "No card to play right now.";
+  $("hand").replaceChildren(...hand.map((c, i) => cardEl(c, i, true)));
+  const keep = keepsakeCards(world);
+  $("keep").replaceChildren(...keep.map((c, i) => cardEl(c, i, false)));
+  $("keep-count").textContent = `(${keep.length})`;
+}
+
+function showTab(which) {
+  const hand = which === "hand";
+  $("hand").hidden = !hand; $("keep").hidden = hand;
+  $("tab-hand").classList.toggle("on", hand); $("tab-keep").classList.toggle("on", !hand);
+  $("tab-hand").setAttribute("aria-selected", String(hand)); $("tab-keep").setAttribute("aria-selected", String(!hand));
+}
+
 // ---------- rendering ----------
 function show(id, on) { $(id).toggleAttribute("hidden", !on); }
 function opacity(id, v) { $(id).setAttribute("opacity", String(v)); }
@@ -249,6 +313,8 @@ function render() {
     el.toggleAttribute("hidden", world.away || !vis[el.dataset.hot]);
     el.classList.toggle("can", !!can[el.dataset.hot]);
   }
+
+  renderCards();
 
   show("away", world.away);
   $("leave").hidden = world.away;
@@ -474,6 +540,8 @@ $("return").addEventListener("click", () => {
   afterEvents(r.events);
 });
 $("restart").addEventListener("click", newGame);
+$("tab-hand").addEventListener("click", () => showTab("hand"));
+$("tab-keep").addEventListener("click", () => showTab("keep"));
 $("set-apply").addEventListener("click", () => applySettings({
   mode: $("set-mode").value, host: $("set-host").value.trim(), model: $("set-model").value.trim(), timeout: $("set-timeout").value,
 }));

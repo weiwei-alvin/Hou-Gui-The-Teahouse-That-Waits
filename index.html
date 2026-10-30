@@ -266,7 +266,15 @@
         </g>
       </svg>
     </div>
-    <p id="caption" class="caption" aria-live="polite">Click things in the scene to look at them and repair them.</p>
+    <p id="caption" class="caption" aria-live="polite">Play a card to act. You can also click things in the scene.</p>
+    <section class="deck" aria-label="Cards">
+      <div class="deck-tabs" role="tablist">
+        <button id="tab-hand" class="deck-tab on" role="tab" aria-selected="true">Your hand</button>
+        <button id="tab-keep" class="deck-tab" role="tab" aria-selected="false">Keepsakes <span id="keep-count"></span></button>
+      </div>
+      <div id="hand" class="cards" role="list"></div>
+      <div id="keep" class="cards" role="list" hidden></div>
+    </section>
     <div class="stage-actions">
       <button id="leave">Step outside for a while</button>
       <button id="return" hidden>Return to the teahouse</button>

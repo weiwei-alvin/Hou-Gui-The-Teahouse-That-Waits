@@ -138,3 +138,26 @@ button.nudge { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(159, 227,
 @keyframes kenburns { from { transform: scale(1.06); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .hot.can, .intro-frame img, .intro-text { animation: none; } }
 .carry { color: #9cc7b5; font-size: 13px; }
+
+/* ---------- cards ---------- */
+:root { --gold: #b9a46a; --gold-dim: #6f6342; --card: #10171d; --card-hi: #16212a; --arch: #1d3a3f; --arch-special: #5a2a24; }
+.deck { margin: 4px 0 12px; }
+.deck-tabs { display: flex; border: 1px solid var(--gold-dim); border-radius: 6px 6px 0 0; overflow: hidden; }
+.deck-tab { flex: 1; border: none; border-radius: 0; background: #12191f; color: var(--muted); padding: 8px; font-family: var(--serif); letter-spacing: .04em; }
+.deck-tab.on { background: linear-gradient(#cfc39a, #a99a68); color: #1a1a14; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); border: 1px solid var(--gold-dim); border-top: none; border-radius: 0 0 6px 6px; background: rgba(10, 14, 18, .85); min-height: 120px; }
+.cards:empty::after { content: attr(data-empty); grid-column: 1 / -1; color: var(--muted); padding: 22px; font-style: italic; font-family: var(--serif); }
+.card { display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 12px; border: none; border-bottom: 1px solid #1c252c; border-right: 1px solid #1c252c; border-radius: 0; background: transparent; color: var(--ink); font: inherit; }
+button.card { cursor: pointer; }
+button.card:hover:not(:disabled), button.card:focus-visible { background: var(--card-hi); }
+button.card:hover .frame, button.card:focus-visible .frame { transform: translateY(-3px); }
+.card .frame { flex: none; width: 82px; transition: transform .2s ease; }
+.card .frame svg { display: block; width: 100%; height: auto; }
+.card .meta { font-size: 12px; color: var(--muted); }
+.card .name { font: 600 17px/1.25 var(--serif); color: #efe6c8; margin: 2px 0 4px; }
+.card .desc { font-size: 13px; color: #c9d2d0; margin: 0; }
+.card .chips { margin-top: 8px; display: flex; gap: 6px; }
+.card .chip-sq { font-size: 11px; color: var(--gold); border: 1px solid var(--gold-dim); background: #0d1216; padding: 2px 7px; border-radius: 3px; }
+.card.played { animation: played .35s ease forwards; }
+@keyframes played { to { opacity: 0; transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .card.played { animation: none; } .card .frame { transition: none; } }

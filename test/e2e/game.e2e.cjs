@@ -117,6 +117,32 @@ async function repair(page, item, spot) {
     await page.close();
   }
 
+  // 1f. Cards only: the whole story can be played from the hand, without touching the scene.
+  {
+    const { page, errors } = await open(browser, "mode=scripted&timeout=5");
+    const play = async (id) => { await page.click(`[data-card="${id}"]`); await idle(page); };
+    check("cards: opening hand has three cards", (await page.$$("#hand .card")).length === 3);
+    for (const id of ["seat-clear", "seat-brazier", "tea-gather", "tea-stove", "tea-fire", "cup-pour", "lamp-raise", "lamp-patch", "lamp-light"]) await play(id);
+    check("cards: keepsakes hold the letter and the crane cup", (await page.textContent("#keep-count")) === "(2)");
+    await play("guest-look");
+    check("cards: looking at the guest adds the lantern keepsake", (await page.textContent("#keep-count")) === "(3)");
+    await page.fill("#talk", "Please sit inside now."); await page.click("#talk-form button"); await idle(page);
+    await play("cup-serve");
+    const s = await w(page);
+    check("cards: serving the crane cup by card frees the keeper", s.letGo && s.ending === "stayed", `${s.letGo} ${s.ending}`);
+    await page.click("#tab-keep");
+    check("cards: keepsakes tab shows three cards", (await page.$$("#keep .card")).length === 3 && await page.isVisible("#keep"));
+    check("cards: no page errors", errors.length === 0, errors.join(" | "));
+    await page.click("#tab-hand");
+    await page.close();
+  }
+  {
+    const { page } = await open(browser, "mode=scripted&timeout=5");
+    await page.click('[data-card="lamp-raise"]'); await idle(page);
+    if (SHOTS) await page.screenshot({ path: `${SHOTS}/cards.png`, fullPage: true });
+    await page.close();
+  }
+
   // 1d. Prologue on first visit, skippable, not shown again.
   {
     const { page } = await open(browser, "mode=scripted&intro=1");
